@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/anchors.dart';
@@ -39,17 +43,75 @@ class _ContactSectionState extends State<ContactSection> {
 
   void _handleSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
+      _submit();
+    }
+  }
+
+  Future<void> _submit() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sending your message…')),
+    );
+    if (!kIsWeb) {
+      // Desktop / mobile: Firebase isn't configured here, so compose the
+      // message in the user's email client instead.
+      _sendByEmail();
+      return;
+    }
+    try {
+      await FirebaseFirestore.instance
+          .collection('messages')
+          .add({
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'message': _messageController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+          })
+          .timeout(const Duration(seconds: 20));
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Thanks for reaching out! The form is not connected to a backend yet.',
-          ),
+          content: Text('Thanks for reaching out — I\'ll get back to you soon!'),
         ),
       );
       _nameController.clear();
       _emailController.clear();
       _messageController.clear();
+    } on TimeoutException {
+      // Request stalled on the network — fall back to email so the message
+      // isn't lost.
+      _sendByEmail(showInfo: true);
+    } catch (error) {
+      // Database write failed, fall back to email so the visitor can still
+      // get in touch.
+      debugPrint('Firestore submit error: $error');
+      _sendByEmail(showInfo: true);
     }
+  }
+
+  void _sendByEmail({bool showInfo = false}) {
+    final subject = Uri.encodeComponent(
+      'Portfolio message from ${_nameController.text.trim()}',
+    );
+    final body = Uri.encodeComponent(
+      'Name: ${_nameController.text.trim()}\n'
+      'Email: ${_emailController.text.trim()}\n\n'
+      '${_messageController.text.trim()}',
+    );
+    openUrl('${AppLinks.mailto}?subject=$subject&body=$body');
+    if (!mounted) return;
+    if (showInfo) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Couldn\'t reach the server, so I\'ve opened your email — '
+            'hit send there and I\'ll get it!',
+          ),
+        ),
+      );
+    }
+    _nameController.clear();
+    _emailController.clear();
+    _messageController.clear();
   }
 
   @override
@@ -59,7 +121,7 @@ class _ContactSectionState extends State<ContactSection> {
 
     return Container(
       key: widget.anchors.contact,
-      padding: EdgeInsets.fromLTRB(padding, 96, padding, 96),
+      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
@@ -69,14 +131,14 @@ class _ContactSectionState extends State<ContactSection> {
               ScrollReveal(
                 controller: widget.controller,
                 child: const SectionHeading(
-                  order: '05',
+                  order: '06',
                   label: 'Contact',
                   title: 'Get in Touch',
                   subtitle:
                       'Have a project in mind or want to discuss opportunities? I\'d love to hear from you.',
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 36),
               if (wide)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +317,7 @@ class _ContactForm extends StatelessWidget {
               _FormTextField(
                 controller: nameController,
                 label: 'Your Name',
-                hint: 'e.g. Aditya',
+                hint: 'e.g. Amrut',
                 icon: Icons.person_outline_rounded,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Please enter your name' : null,

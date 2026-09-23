@@ -64,15 +64,21 @@ class Project {
   final bool codeAvailable;
 }
 
-class Certification {
-  const Certification({
-    required this.title,
-    required this.issuer,
+class ExperienceItem {
+  const ExperienceItem({
+    required this.role,
+    required this.company,
+    required this.period,
+    required this.mode,
+    required this.bullets,
     required this.icon,
   });
 
-  final String title;
-  final String issuer;
+  final String role;
+  final String company;
+  final String period;
+  final String mode;
+  final List<String> bullets;
   final IconData icon;
 }
 
@@ -95,16 +101,4 @@ class ContactLink {
   final String value;
   final IconData icon;
   final String? url;
-}
-
-class CertificateGalleryItem {
-  const CertificateGalleryItem({
-    required this.imagePath,
-    required this.title,
-    required this.category,
-  });
-
-  final String imagePath;
-  final String title;
-  final String category;
 }

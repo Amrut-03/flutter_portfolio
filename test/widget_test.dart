@@ -32,7 +32,7 @@ void main() {
     await pumpAt(tester, const Size(1280, 900));
     expect(find.text('Building Scalable Cross-Platform Apps with Flutter'),
         findsOneWidget);
-    expect(find.text('Aditya Khochikar'), findsWidgets);
+    expect(find.text('Amrut Khochikar'), findsWidgets);
   });
 
   testWidgets('shows hamburger menu on mobile and expands it',
@@ -42,23 +42,23 @@ void main() {
     // Nav links hidden behind hamburger (below 1180px).
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
     // Only the section headings are present before opening the menu.
-    expect(find.text('Certifications'), findsNothing);
+    expect(find.text('Achievements'), findsNothing);
     expect(find.text('Contact'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.menu_rounded));
     await tester.pump(const Duration(milliseconds: 400));
 
-    // Mobile menu links now present ("Certifications" = menu link).
-    expect(find.text('Certifications'), findsOneWidget);
+    // Mobile menu links now present ("Achievements" = menu link).
+    expect(find.text('Achievements'), findsOneWidget);
     expect(find.text('Contact'), findsOneWidget);
   });
 
   testWidgets('displays desktop nav links on wide screens',
       (WidgetTester tester) async {
     await pumpAt(tester, const Size(1280, 900));
-    // Desktop nav link present ("Certifications" only in nav, heading uses
-    // uppercase label + "Certifications & Achievements" title).
-    expect(find.text('Certifications'), findsOneWidget);
+    // Desktop nav link present ("Achievements" only in nav, heading uses
+    // uppercase label + "Achievements & Recognition" title).
+    expect(find.text('Achievements'), findsOneWidget);
     expect(find.text('Contact'), findsOneWidget);
     expect(find.byIcon(Icons.menu_rounded), findsNothing);
   });
@@ -66,7 +66,7 @@ void main() {
   testWidgets('renders skill bars', (WidgetTester tester) async {
     await pumpAt(tester, const Size(1280, 900));
     expect(find.text('TOP SKILLS'), findsOneWidget);
-    expect(find.text('BLoC State Management'), findsOneWidget);
+    expect(find.text('GetX State Management'), findsOneWidget);
   });
 
   for (final size in const [

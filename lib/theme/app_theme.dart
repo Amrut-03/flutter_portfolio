@@ -4,21 +4,21 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  static const Color background = Color(0xFF070B14);
-  static const Color surface = Color(0xFF0B1322);
-  static const Color surfaceAlt = Color(0xFF0F1B2E);
-  static const Color surfaceGlass = Color(0x0F15233A);
+  static const Color background = Color(0xFF0F0A1E);
+  static const Color surface = Color(0xFF160F26);
+  static const Color surfaceAlt = Color(0xFF1E1633);
+  static const Color surfaceGlass = Color(0x0F1D1530);
 
-  static const Color border = Color(0xFF1E2C45);
-  static const Color borderBright = Color(0xFF2E4366);
+  static const Color border = Color(0xFF302549);
+  static const Color borderBright = Color(0xFF4A3A70);
 
-  static const Color textPrimary = Color(0xFFE8EEF9);
-  static const Color textSecondary = Color(0xFF92A4C0);
-  static const Color textMuted = Color(0xFF5C6E8C);
+  static const Color textPrimary = Color(0xFFF2ECFC);
+  static const Color textSecondary = Color(0xFFBEADD9);
+  static const Color textMuted = Color(0xFF8070A3);
 
-  static const Color blue = Color(0xFF3B82F6);
-  static const Color cyan = Color(0xFF22D3EE);
-  static const Color purple = Color(0xFF8B5CF6);
+  static const Color blue = Color(0xFF8B5CF6);
+  static const Color cyan = Color(0xFFC084FC);
+  static const Color purple = Color(0xFFE879F9);
 
   static const Color statusGreen = Color(0xFF34D399);
   static const Color statusAmber = Color(0xFFFBBF24);
@@ -41,7 +41,7 @@ class AppColors {
     blue,
     purple,
     statusGreen,
-    Color(0xFFF472B6),
+    Color(0xFFA855F7),
     statusAmber,
   ];
 }
@@ -182,7 +182,7 @@ class AppTheme {
       ),
       textSelectionTheme: const TextSelectionThemeData(
         cursorColor: AppColors.cyan,
-        selectionColor: Color(0x3322D3EE),
+        selectionColor: Color(0x33C084FC),
         selectionHandleColor: AppColors.cyan,
       ),
       inputDecorationTheme: InputDecorationTheme(

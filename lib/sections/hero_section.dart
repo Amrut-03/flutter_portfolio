@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../core/anchors.dart';
 import '../core/open.dart';
 import '../core/portfolio_data.dart';
+import '../core/resume_download.dart';
+import '../core/scroll_util.dart';
 import '../theme/app_theme.dart';
 import '../widgets/grad_text.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/hover_card.dart';
-import '../widgets/particle_background.dart';
 import '../widgets/scroll_reveal.dart';
 import '../widgets/tech_chip.dart';
 
@@ -41,18 +42,13 @@ class HeroSection extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: ParticleBackground(
-              maxIntensity: 0.42,
-              controller: controller,
-            ),
-          ),          // Decorative glow blobs.
+          // Decorative glow blobs.
           Positioned(
             top: -140,
             right: -120,
             child: _GlowBlob(
               size: 420,
-              colors: const [Color(0x333B82F6), Color(0x003B82F6)],
+              colors: const [Color(0x338B5CF6), Color(0x008B5CF6)],
             ),
           ),
           Positioned(
@@ -60,7 +56,7 @@ class HeroSection extends StatelessWidget {
             left: -180,
             child: _GlowBlob(
               size: 380,
-              colors: const [Color(0x228B5CF6), Color(0x008B5CF6)],
+              colors: const [Color(0x22E879F9), Color(0x00E879F9)],
             ),
           ),
           Padding(
@@ -78,14 +74,16 @@ class HeroSection extends StatelessWidget {
                     final left = _LeftPane(
                       device: isDesktop ? DeviceType.desktop : device,
                       headlineSize: isDesktop ? wideHeadline : narrowHeadline,
+                      anchors: anchors,
+                      controller: controller,
                     );
                     if (!isDesktop) {
                       return Column(
                         children: [
                           left,
-                          const SizedBox(height: 48),
+                          const SizedBox(height: 36),
                           const _TerminalCard(),
-                          const SizedBox(height: 64),
+                          const SizedBox(height: 48),
                           const _ScrollHint(),
                         ],
                       );
@@ -96,12 +94,11 @@ class HeroSection extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(flex: 5, child: left),
-                            const SizedBox(width: 48,),
-
-                            const Expanded(flex: 2, child: _TerminalCard()),
+                            const SizedBox(width: 36),
+                            const Expanded(flex: 3, child: _TerminalCard()),
                           ],
                         ),
-                        const SizedBox(height: 72),
+                        const SizedBox(height: 56),
                         const _ScrollHint(),
                       ],
                     );
@@ -117,10 +114,17 @@ class HeroSection extends StatelessWidget {
 }
 
 class _LeftPane extends StatelessWidget {
-  const _LeftPane({required this.device, required this.headlineSize});
+  const _LeftPane({
+    required this.device,
+    required this.headlineSize,
+    required this.anchors,
+    required this.controller,
+  });
 
   final DeviceType device;
   final double headlineSize;
+  final Anchors anchors;
+  final ScrollController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +147,7 @@ class _LeftPane extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          'Specializing in Clean Architecture, BLoC state management, and Firebase-backed Flutter applications — from pixel-perfect UI to production REST/Firebase integration.',
+          'Specializing in state management (GetX · Bloc · Riverpod), Clean Architecture, and Firebase — from pixel-perfect UI to production REST/Firebase integration. Passionate about offline-first applications and on-device AI.',
           textAlign: desktop ? TextAlign.start : TextAlign.center,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
@@ -167,7 +171,6 @@ class _LeftPane extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 32),
-        // TODO: Links below are placeholders — swap them in portfolio_data.dart.
         _QuoteCard(center: !desktop),
         const SizedBox(height: 26),
         Wrap(
@@ -178,25 +181,23 @@ class _LeftPane extends StatelessWidget {
           runSpacing: 10,
           children: [
             GradientButton(
-              label: 'GitHub',
-              icon: Icons.code_rounded,
-              outlined: true,
-              compact: true,
-              onPressed: () => openUrl(AppLinks.github),
+              label: 'Email Me',
+              icon: Icons.mail_rounded,
+              onPressed: () => openUrl(AppLinks.mailto),
             ),
             GradientButton(
-              label: 'LinkedIn',
-              icon: Icons.business_center_rounded,
+              label: 'Resume',
+              icon: Icons.download_rounded,
               outlined: true,
               compact: true,
-              onPressed: () => openUrl(AppLinks.linkedin),
+              onPressed: downloadResume,
             ),
             GradientButton(
-              label: 'LeetCode',
-              icon: Icons.terminal_rounded,
+              label: 'View Projects',
+              icon: Icons.arrow_downward_rounded,
               outlined: true,
               compact: true,
-              onPressed: () => openUrl(AppLinks.leetcode),
+              onPressed: () => scrollToAnchor(anchors, 'projects', controller),
             ),
           ],
         ),
@@ -292,7 +293,7 @@ class _ProfilePhoto extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: Image.asset(
-          'assets/images/profile.jpg',
+          'assets/images/profile.jpeg',
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) => _InitialsAvatar(),
         ),
@@ -386,7 +387,7 @@ class _QuoteCard extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                'Computer Science graduate (B.Tech, CGPA 6.9) with hands-on experience building production-grade Flutter applications using Clean Architecture, BLoC state management, and Firebase — from UI to backend integration.',
+                'Flutter Developer and Mobile App Engineer building cross-platform mobile applications with Flutter, Dart, and Firebase — experienced in GetX, Bloc, and Riverpod state management, Clean Architecture, and REST API integration, with a passion for offline-first apps and on-device AI.',
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       color: AppColors.textPrimary,
                       fontFamily: AppText.displayFont,
@@ -406,13 +407,13 @@ class _TerminalCard extends StatelessWidget {
   const _TerminalCard();
 
   static const _lines = [
-    r'aditya@flutter:~$ whoami',
-    'aditya-khochikar · Flutter Developer',
-    r'aditya@flutter:~$ ls ./architecture',
-    'clean/  bloc/  repositories/  features/',
-    r'aditya@flutter:~$ cat firebase.txt',
-    'auth · cloud_firestore · realtime',
-    r'aditya@flutter:~$ status',
+    r'amrut@flutter:~$ whoami',
+    'amrut-khochikar · Flutter Developer',
+    r'amrut@flutter:~$ ls ./architecture',
+    'getx/  bloc/  riverpod/  clean/',
+    r'amrut@flutter:~$ cat firebase.txt',
+    'auth · realtime · cloud_firestore',
+    r'amrut@flutter:~$ status',
     'Open to opportunities ✓',
   ];
 
@@ -457,7 +458,7 @@ class _TerminalCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -466,9 +467,9 @@ class _TerminalCard extends StatelessWidget {
                     text: _lines[i],
                     isPrompt: i.isEven,
                   ),
-                  if (i < _lines.length - 1) const SizedBox(height: 9),
+                  if (i < _lines.length - 1) const SizedBox(height: 6),
                 ],
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 8),
@@ -485,7 +486,7 @@ class _TerminalCard extends StatelessWidget {
                       const SizedBox(width: 7),
                       Expanded(
                         child: Text(
-                          'Clean Architecture · BLoC · Firebase',
+                          'GetX · Bloc · Riverpod · Firebase',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

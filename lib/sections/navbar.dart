@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../core/anchors.dart';
-import '../core/open.dart';
-import '../core/portfolio_data.dart';
+import '../core/resume_download.dart';
 import '../theme/app_theme.dart';
 import '../widgets/grad_text.dart';
 import '../widgets/gradient_button.dart';
@@ -27,9 +26,10 @@ class NavBar extends StatefulWidget {
 class _NavBarState extends State<NavBar> {
   static const _items = [
     (id: 'about', label: 'About'),
+    (id: 'experience', label: 'Experience'),
     (id: 'skills', label: 'Skills'),
     (id: 'projects', label: 'Projects'),
-    (id: 'certifications', label: 'Certifications'),
+    (id: 'achievements', label: 'Achievements'),
     (id: 'contact', label: 'Contact'),
   ];
 
@@ -81,8 +81,8 @@ class _NavBarState extends State<NavBar> {
   Widget build(BuildContext context) {
     final isCompact = useCompactNav(context);
     final navColor = (_scrolled || _menuOpen)
-        ? const Color(0xEA0B1322)
-        : const Color(0xA60B1322);
+        ? const Color(0xEA160F26)
+        : const Color(0xA6160F26);
 
     return Material(
       color: Colors.transparent,
@@ -119,13 +119,13 @@ class _NavBarState extends State<NavBar> {
                             active: _active == item.id,
                             onTap: () => _navigate(item.id),
                           )),
-                          const SizedBox(width: 12),
-                          GradientButton(
-                            label: 'Resume',
-                            icon: Icons.download_rounded,
-                            compact: true,
-                            onPressed: () => openUrl(AppLinks.resume),
-                          ),
+                      const SizedBox(width: 6),
+                      GradientButton(
+                        label: 'Resume',
+                        icon: Icons.download_rounded,
+                        compact: true,
+                        onPressed: downloadResume,
+                      ),
                     ] else ...[
                       IconButton(
                         onPressed: () => setState(() => _menuOpen = !_menuOpen),
@@ -150,30 +150,32 @@ class _NavBarState extends State<NavBar> {
               duration: const Duration(milliseconds: 260),
               curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
-              child: !_menuOpen
-                  ? const SizedBox.shrink()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final item in _items)
-                          _MobileLink(
-                            label: item.label,
-                            active: _active == item.id,
-                            onTap: () => _navigate(item.id),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 18),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: GradientButton(
-                              label: 'Resume',
-                              icon: Icons.download_rounded,
-                              onPressed: () => openUrl(AppLinks.resume),
+child: !_menuOpen
+                    ? const SizedBox.shrink()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final item in _items)
+                            _MobileLink(
+                              label: item.label,
+                              active: _active == item.id,
+                              onTap: () => _navigate(item.id),
                             ),
+                          const Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: AppColors.border,
                           ),
-                        ),
-                      ],
-                    ),
+                          _MobileLink(
+                            label: 'Resume',
+                            active: false,
+                            onTap: () {
+                              setState(() => _menuOpen = false);
+                              downloadResume();
+                            },
+                          ),
+                        ],
+                      ),
             ),
           ],
         ),
@@ -224,7 +226,7 @@ class _Logo extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Aditya Khochikar',
+                    'Amrut Khochikar',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.spaceGrotesk(

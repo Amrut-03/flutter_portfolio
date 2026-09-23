@@ -1,12 +1,20 @@
 import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'firebase_options.dart';
 import 'sections/portfolio_page.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   runApp(const PortfolioApp());
 }
 
@@ -16,7 +24,7 @@ class PortfolioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aditya Khochikar — Flutter Developer',
+      title: 'Amrut Khochikar — Flutter Developer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
       scrollBehavior: const _AppScrollBehavior(),

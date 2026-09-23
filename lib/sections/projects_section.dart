@@ -10,7 +10,7 @@ import '../widgets/scroll_reveal.dart';
 import '../widgets/section_heading.dart';
 import '../widgets/tech_chip.dart';
 
-class ProjectsSection extends StatefulWidget {
+class ProjectsSection extends StatelessWidget {
   const ProjectsSection({
     super.key,
     required this.anchors,
@@ -21,24 +21,12 @@ class ProjectsSection extends StatefulWidget {
   final ScrollController controller;
 
   @override
-  State<ProjectsSection> createState() => _ProjectsSectionState();
-}
-
-class _ProjectsSectionState extends State<ProjectsSection> {
-  String _filter = 'All';
-
-  List<Project> get _filtered {
-    if (_filter == 'All') return projects;
-    return projects.where((p) => p.categories.contains(_filter)).toList();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final padding = contentPaddingOf(context);
 
     return Container(
-      key: widget.anchors.projects,
-      padding: EdgeInsets.fromLTRB(padding, 96, padding, 96),
+      key: anchors.projects,
+      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
@@ -46,156 +34,39 @@ class _ProjectsSectionState extends State<ProjectsSection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ScrollReveal(
-                controller: widget.controller,
+                controller: controller,
                 child: const SectionHeading(
-                  order: '03',
+                  order: '04',
                   label: 'Projects',
                   title: 'Featured Work',
                 ),
               ),
-              const SizedBox(height: 40),
-              _FilterRow(
-                filters: const ['All', 'Flutter & Firebase', 'Architecture-focused'],
-                selected: _filter,
-                onTap: (f) => setState(() => _filter = f),
-                controller: widget.controller,
-              ),
-              const SizedBox(height: 36),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 360),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-                child: KeyedSubtree(
-                  key: ValueKey(_filter),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final spacing = 24.0;
-                      final isWide = constraints.maxWidth > 700;
-                      final itemWidth = isWide
-                          ? (constraints.maxWidth - spacing) / 2
-                          : constraints.maxWidth;
-                      return Wrap(
-                        spacing: spacing,
-                        runSpacing: spacing,
-                        children: [
-                          for (final project in _filtered)
-                            SizedBox(
-                              width: itemWidth,
-                              child: ScrollReveal(
-                                controller: widget.controller,
-                                duration: const Duration(milliseconds: 800),
-                                child: _ProjectCard(project: project),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
+              const SizedBox(height: 32),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final spacing = 24.0;
+                  final isWide = constraints.maxWidth > 700;
+                  final itemWidth = isWide
+                      ? (constraints.maxWidth - spacing) / 2
+                      : constraints.maxWidth;
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      for (final project in projects)
+                        SizedBox(
+                          width: itemWidth,
+                          child: ScrollReveal(
+                            controller: controller,
+                            duration: const Duration(milliseconds: 800),
+                            child: _ProjectCard(project: project),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FilterRow extends StatelessWidget {
-  const _FilterRow({
-    required this.filters,
-    required this.selected,
-    required this.onTap,
-    required this.controller,
-  });
-
-  final List<String> filters;
-  final String selected;
-  final ValueChanged<String> onTap;
-  final ScrollController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return ScrollReveal(
-      controller: controller,
-      offsetY: 18,
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: [
-          for (final f in filters)
-            _FilterChip(
-              label: f,
-              selected: selected == f,
-              onTap: () => onTap(f),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatefulWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor =
-        widget.selected ? null : (_hovered ? AppColors.surfaceAlt : AppColors.surface);
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          transform: Matrix4.translationValues(0, _hovered && !widget.selected ? -1 : 0, 0),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-          decoration: BoxDecoration(
-            color: bgColor,
-            gradient:
-                widget.selected ? AppColors.primaryGradient : null,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: widget.selected ? Colors.transparent : AppColors.border,
-            ),
-            boxShadow: widget.selected
-                ? [
-                    BoxShadow(
-                      color: AppColors.cyan.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      spreadRadius: -6,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            widget.label,
-            style: AppText.mono(
-              12.5,
-              color: widget.selected ? Colors.white : AppColors.textSecondary,
-              weight: FontWeight.w600,
-            ),
           ),
         ),
       ),
@@ -220,14 +91,10 @@ class _ProjectCardState extends State<_ProjectCard> {
   @override
   Widget build(BuildContext context) {
     final p = widget.project;
-    final hasCode = p.codeAvailable && p.githubUrl != null;
-    // Collapsed: show 2 bullets only. Expanded: show the full list.
-    final visibleBullets =
-        _expanded ? p.bullets : p.bullets.take(2).toList();
+    final visibleBullets = _expanded ? p.bullets : p.bullets.take(2).toList();
     final canExpand = p.bullets.length > 2;
 
     return HoverCard(
-      onTap: _toggle,
       padding: const EdgeInsets.all(22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +153,8 @@ class _ProjectCardState extends State<_ProjectCard> {
             ],
           ),
           const SizedBox(height: 18),
-          // Bullets (collapsed = 2, expanded = all).
+          // Bullets (collapsed = 2, expanded = all) with a See More / See
+          // Less toggle link.
           AnimatedSize(
             duration: const Duration(milliseconds: 320),
             curve: Curves.easeOutCubic,
@@ -322,22 +190,27 @@ class _ProjectCardState extends State<_ProjectCard> {
                       ],
                     ),
                   ),
-                if (canExpand && !_expanded)
+                if (canExpand)
                   Padding(
-                    padding: const EdgeInsets.only(top: 2),
+                    padding: const EdgeInsets.only(top: 8),
                     child: InkWell(
                       onTap: _toggle,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Show ${p.bullets.length - 2} more',
+                            _expanded ? 'See Less' : 'See More',
                             style: AppText.mono(12,
                                 color: AppColors.cyan, weight: FontWeight.w600),
                           ),
                           const SizedBox(width: 5),
-                          Icon(Icons.expand_more_rounded,
-                              size: 18, color: AppColors.cyan),
+                          Icon(
+                            _expanded
+                                ? Icons.expand_less_rounded
+                                : Icons.expand_more_rounded,
+                            size: 18,
+                            color: AppColors.cyan,
+                          ),
                         ],
                       ),
                     ),
@@ -345,36 +218,20 @@ class _ProjectCardState extends State<_ProjectCard> {
               ],
             ),
           ),
+        if (p.codeAvailable && p.githubUrl != null) ...[
           const SizedBox(height: 18),
-          // Primary button: opens the repo when code is available, otherwise
-          // toggles the expand/collapse detail view.
-          SizedBox(
-            width: double.infinity,
+          Align(
+            alignment: Alignment.centerLeft,
             child: GradientButton(
-              label: _buttonLabel(p, canExpand),
-              icon: _buttonIcon(p),
-              outlined: true,
+              label: 'View Code',
+              icon: Icons.launch_rounded,
               compact: true,
-              onPressed: hasCode
-                  ? () => openUrl(p.githubUrl!)
-                  : _toggle,
+              onPressed: () => openUrl(p.githubUrl!),
             ),
           ),
         ],
+      ],
       ),
     );
-  }
-
-  String _buttonLabel(Project p, bool canExpand) {
-    if (p.codeAvailable) return 'View Code';
-    if (_expanded) return 'Collapse';
-    return canExpand ? 'Expand Details' : 'Details';
-  }
-
-  IconData _buttonIcon(Project p) {
-    if (p.codeAvailable) return Icons.code_rounded;
-    return _expanded
-        ? Icons.expand_less_rounded
-        : Icons.expand_more_rounded;
   }
 }

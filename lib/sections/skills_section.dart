@@ -26,7 +26,20 @@ class _SkillsSectionState extends State<SkillsSection>
       TabController(length: skillCategories.length, vsync: this);
 
   @override
+  void initState() {
+    super.initState();
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index != _tabController.previousIndex) {
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -102,7 +115,7 @@ class _SkillsSectionState extends State<SkillsSection>
 
     return Container(
       key: widget.anchors.skills,
-      padding: EdgeInsets.fromLTRB(padding, 96, padding, 96),
+      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
@@ -112,14 +125,14 @@ class _SkillsSectionState extends State<SkillsSection>
               ScrollReveal(
                 controller: widget.controller,
                 child: const SectionHeading(
-                  order: '02',
+                  order: '03',
                   label: 'Skills',
                   title: 'Tech Stack & Expertise',
                   subtitle:
                       'The tools and patterns I use to ship dependable Flutter apps end to end.',
                 ),
               ),
-              const SizedBox(height: 44),
+              const SizedBox(height: 32),
               if (sidePanel)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

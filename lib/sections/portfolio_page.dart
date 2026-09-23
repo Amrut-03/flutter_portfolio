@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import '../core/anchors.dart';
 import '../core/scroll_util.dart';
 import '../theme/app_theme.dart';
+import '../widgets/particle_background.dart';
 import 'navbar.dart';
 import 'hero_section.dart';
 import 'education_section.dart';
+import 'experience_section.dart';
 import 'skills_section.dart';
 import 'projects_section.dart';
-import 'certifications_section.dart';
+import 'achievements_section.dart';
 import 'contact_section.dart';
 import 'footer.dart';
 
@@ -47,6 +49,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
+          // Full-page particle background.
+          Positioned.fill(
+            child: ParticleBackground(
+              maxIntensity: 0.35,
+              controller: _scrollController,
+            ),
+          ),
           // Main scrolling content.
           SingleChildScrollView(
             controller: _scrollController,
@@ -55,11 +64,13 @@ class _PortfolioPageState extends State<PortfolioPage> {
               children: [
                 HeroSection(anchors: _anchors, controller: _scrollController),
                 EducationSection(controller: _scrollController),
+                ExperienceSection(
+                    anchors: _anchors, controller: _scrollController),
                 SkillsSection(
                     anchors: _anchors, controller: _scrollController),
                 ProjectsSection(
                     anchors: _anchors, controller: _scrollController),
-                CertificationsSection(
+                AchievementsSection(
                     anchors: _anchors, controller: _scrollController),
                 ContactSection(
                     anchors: _anchors, controller: _scrollController),

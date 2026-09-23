@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/portfolio_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_button.dart';
 
@@ -56,7 +55,7 @@ class Footer extends StatelessWidget {
               ],
               const SizedBox(height: 22),
               Text(
-                '© 2026 ${AppLinks.email.split('@').last.replaceAll(".com", "").replaceAll('.gmail', '')}. Built with Flutter.',
+                '© 2026 Amrut Khochikar. Built with Flutter.',
                 style: AppText.mono(11.5, letterSpacing: 0.8),
                 textAlign: TextAlign.center,
               ),
@@ -98,7 +97,7 @@ class _Logo extends StatelessWidget {
         const SizedBox(width: 11),
         Flexible(
           child: Text(
-            'Aditya Khochikar — Flutter Developer',
+            'Amrut Khochikar — Flutter Developer',
             maxLines: 2,
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: AppColors.textPrimary,

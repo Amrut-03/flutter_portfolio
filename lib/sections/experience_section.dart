@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/anchors.dart';
 import '../core/portfolio_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/hover_card.dart';
@@ -7,17 +8,23 @@ import '../widgets/scroll_reveal.dart';
 import '../widgets/section_heading.dart';
 import '../widgets/tech_chip.dart';
 
-class EducationSection extends StatelessWidget {
-  const EducationSection({super.key, required this.controller});
+class ExperienceSection extends StatelessWidget {
+  const ExperienceSection({
+    super.key,
+    required this.anchors,
+    required this.controller,
+  });
 
+  final Anchors anchors;
   final ScrollController controller;
 
   @override
   Widget build(BuildContext context) {
     final padding = contentPaddingOf(context);
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(padding, 48, padding, 32),
+    return Container(
+      key: anchors.experience,
+      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
@@ -27,17 +34,19 @@ class EducationSection extends StatelessWidget {
               ScrollReveal(
                 controller: controller,
                 child: const SectionHeading(
-                  order: '01',
-                  label: 'Education',
-                  title: 'Education',
+                  order: '02',
+                  label: 'Experience',
+                  title: 'Work Experience',
+                  subtitle:
+                      'Professional roles building production-ready Flutter applications across industries.',
                 ),
               ),
               const SizedBox(height: 32),
-              for (var i = 0; i < educationItems.length; i++)
+              for (var i = 0; i < experienceItems.length; i++)
                 ScrollReveal(
                   controller: controller,
                   delay: Duration(milliseconds: 120 * i),
-                  child: _EducationCard(item: educationItems[i]),
+                  child: _ExperienceCard(item: experienceItems[i]),
                 ),
             ],
           ),
@@ -47,10 +56,10 @@ class EducationSection extends StatelessWidget {
   }
 }
 
-class _EducationCard extends StatelessWidget {
-  const _EducationCard({required this.item});
+class _ExperienceCard extends StatelessWidget {
+  const _ExperienceCard({required this.item});
 
-  final EducationItem item;
+  final ExperienceItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -115,30 +124,30 @@ class _IconBox extends StatelessWidget {
 class _Content extends StatelessWidget {
   const _Content({required this.item});
 
-  final EducationItem item;
+  final ExperienceItem item;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Expanded(
-              child: Text(
-                item.degree,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall!
-                    .copyWith(fontFamily: AppText.displayFont),
-              ),
+            Text(
+              item.role,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall!
+                  .copyWith(fontFamily: AppText.displayFont),
             ),
-            const SizedBox(width: 12),
-            TechChip(item.tag, dotColor: AppColors.cyan),
+            TechChip(item.mode, dotColor: AppColors.cyan),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(item.institute, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 6),
+        Text(item.company, style: Theme.of(context).textTheme.bodyMedium),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -155,6 +164,31 @@ class _Content extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        for (var i = 0; i < item.bullets.length; i++)
+          Padding(
+            padding: EdgeInsets.only(bottom: i == item.bullets.length - 1 ? 0 : 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('▸ ',
+                    style: TextStyle(
+                        color: AppColors.cyan,
+                        fontSize: 13,
+                        fontFamily: AppText.monoFont,
+                        height: 1.5)),
+                Expanded(
+                  child: Text(
+                    item.bullets[i],
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

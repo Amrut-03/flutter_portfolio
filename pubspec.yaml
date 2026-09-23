@@ -1,5 +1,5 @@
 name: portfolio
-description: "A new Flutter project."
+description: "Amrut Khochikar — Flutter Developer & Mobile App Engineer portfolio."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^8.2.1
   url_launcher: ^6.3.2
+  firebase_core: ^4.14.0
+  cloud_firestore: ^6.10.0
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -61,7 +64,7 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/images/certificates/
+    - assets/resume.pdf
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

@@ -146,9 +146,9 @@ class _ParticlePainter extends CustomPainter {
   final double maxIntensity;
   final bool drawLinks;
 
-  static const Color _dotColor = Color(0xFFBFE3FF);
-  static const Color _accentColor = Color(0xFF22D3EE);
-  static const Color _lineColor = Color(0xFF3B82F6);
+  static const Color _dotColor = Color(0xFFE4DAFF);
+  static const Color _accentColor = Color(0xFFC084FC);
+  static const Color _lineColor = Color(0xFF8B5CF6);
 
   List<_Particle>? _cached;
   List<(int, int)>? _links;
