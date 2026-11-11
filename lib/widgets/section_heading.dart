@@ -33,21 +33,15 @@ class SectionHeading extends StatelessWidget {
       children: [
         Text(
           '$order — ',
-          style: AppText.mono(13,
-              color: AppColors.cyan, letterSpacing: 1.6),
+          style: AppText.mono(13, color: AppColors.cyan, letterSpacing: 1.6),
         ),
-        Text(
-          label.toUpperCase(),
-          style: AppText.mono(13, letterSpacing: 3),
-        ),
+        Text(label.toUpperCase(), style: AppText.mono(13, letterSpacing: 3)),
       ],
     );
 
     final divider = Container(
       height: 1,
-      constraints: BoxConstraints(
-        maxWidth: center ? 160 : double.infinity,
-      ),
+      constraints: BoxConstraints(maxWidth: center ? 160 : double.infinity),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -59,8 +53,9 @@ class SectionHeading extends StatelessWidget {
     );
 
     return Column(
-      crossAxisAlignment:
-          center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: center
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         if (!center) ...[
           Row(
@@ -71,13 +66,7 @@ class SectionHeading extends StatelessWidget {
             ],
           ),
         ] else
-          Column(
-            children: [
-              tag,
-              const SizedBox(height: 12),
-              divider,
-            ],
-          ),
+          Column(children: [tag, const SizedBox(height: 12), divider]),
         const SizedBox(height: 18),
         Text(
           title,

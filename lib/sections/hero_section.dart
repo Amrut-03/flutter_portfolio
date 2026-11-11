@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/anchors.dart';
 import '../core/open.dart';
+import '../core/platform/browser.dart';
 import '../core/portfolio_data.dart';
-import '../core/resume_download.dart';
-import '../core/scroll_util.dart';
 import '../theme/app_theme.dart';
 import '../widgets/grad_text.dart';
 import '../widgets/gradient_button.dart';
@@ -13,25 +12,26 @@ import '../widgets/scroll_reveal.dart';
 import '../widgets/tech_chip.dart';
 
 class HeroSection extends StatelessWidget {
-  const HeroSection({
-    super.key,
-    required this.anchors,
-    required this.controller,
-  });
+  const HeroSection({super.key, required this.onNavigate});
 
-  final Anchors anchors;
-  final ScrollController controller;
+  final ValueChanged<SectionId> onNavigate;
 
   @override
   Widget build(BuildContext context) {
     final device = deviceOf(context);
     final isDesktop = device == DeviceType.desktop;
     final padding = contentPaddingOf(context);
-    final wideHeadline = isDesktop ? 46.0 : 38.0;
-    final narrowHeadline = device == DeviceType.mobile ? 30.0 : 32.0;
+    final left = _LeftPane(
+      desktop: isDesktop,
+      headlineSize: switch (device) {
+        DeviceType.desktop => 46,
+        DeviceType.tablet => 34,
+        DeviceType.mobile => 30,
+      },
+      onNavigate: onNavigate,
+    );
 
     return Container(
-      key: anchors.about,
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: RadialGradient(
@@ -42,54 +42,36 @@ class HeroSection extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Decorative glow blobs.
-          Positioned(
+          const Positioned(
             top: -140,
             right: -120,
             child: _GlowBlob(
               size: 420,
-              colors: const [Color(0x338B5CF6), Color(0x008B5CF6)],
+              colors: [Color(0x338B5CF6), Color(0x008B5CF6)],
             ),
           ),
-          Positioned(
+          const Positioned(
             top: 320,
             left: -180,
             child: _GlowBlob(
               size: 380,
-              colors: const [Color(0x22E879F9), Color(0x00E879F9)],
+              colors: [Color(0x22E879F9), Color(0x00E879F9)],
             ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(
-                padding, AppTheme.navBarHeight + 48, padding, 96),
-            child: ScrollReveal(
-              controller: controller,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: maxContentWidth),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Use the device breakpoint (>=1025 desktop) for the
-                    // side-by-side layout so it appears at the right widths.
-                    final isDesktop = deviceOf(context) == DeviceType.desktop;
-                    final left = _LeftPane(
-                      device: isDesktop ? DeviceType.desktop : device,
-                      headlineSize: isDesktop ? wideHeadline : narrowHeadline,
-                      anchors: anchors,
-                      controller: controller,
-                    );
-                    if (!isDesktop) {
-                      return Column(
-                        children: [
-                          left,
-                          const SizedBox(height: 36),
-                          const _TerminalCard(),
-                          const SizedBox(height: 48),
-                          const _ScrollHint(),
-                        ],
-                      );
-                    }
-                    return Column(
-                      children: [
+              padding,
+              AppTheme.navBarHeight + 48,
+              padding,
+              96,
+            ),
+            child: Center(
+              child: ScrollReveal(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: maxContentWidth),
+                  child: Column(
+                    children: [
+                      if (isDesktop)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -97,12 +79,16 @@ class HeroSection extends StatelessWidget {
                             const SizedBox(width: 36),
                             const Expanded(flex: 3, child: _TerminalCard()),
                           ],
-                        ),
-                        const SizedBox(height: 56),
-                        const _ScrollHint(),
+                        )
+                      else ...[
+                        left,
+                        const SizedBox(height: 36),
+                        const _TerminalCard(),
                       ],
-                    );
-                  },
+                      SizedBox(height: isDesktop ? 56 : 48),
+                      const _ScrollHint(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -115,89 +101,89 @@ class HeroSection extends StatelessWidget {
 
 class _LeftPane extends StatelessWidget {
   const _LeftPane({
-    required this.device,
+    required this.desktop,
     required this.headlineSize,
-    required this.anchors,
-    required this.controller,
+    required this.onNavigate,
   });
 
-  final DeviceType device;
+  final bool desktop;
   final double headlineSize;
-  final Anchors anchors;
-  final ScrollController controller;
+  final ValueChanged<SectionId> onNavigate;
 
   @override
   Widget build(BuildContext context) {
-    final desktop = device == DeviceType.desktop;
+    // Desktop: everything start-aligned next to the terminal card.
+    // Mobile / tablet: everything centred in a single column.
+    final textAlign = desktop ? TextAlign.start : TextAlign.center;
+    final wrapAlign = desktop ? WrapAlignment.start : WrapAlignment.center;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: desktop
-          ? CrossAxisAlignment.center
+          ? CrossAxisAlignment.start
           : CrossAxisAlignment.center,
       children: [
-        _ProfilePhoto(center: !desktop),
+        const _ProfilePhoto(),
         const SizedBox(height: 28),
-        _AboutBadge(center: !desktop),
-        const SizedBox(height: 28),
-        GradientText(
-          'Building Scalable Cross-Platform Apps with Flutter',
-          textAlign: desktop ? TextAlign.start : TextAlign.center,
-          style: Theme.of(context).textTheme.displayLarge!.copyWith(
-                fontSize: headlineSize,
-              ),
+        const _StatusBadge(),
+        const SizedBox(height: 24),
+        Semantics(
+          header: true,
+          child: GradientText(
+            'Building AI-Powered Mobile Apps with Flutter',
+            textAlign: textAlign,
+            style: textTheme.displayLarge!.copyWith(fontSize: headlineSize),
+          ),
         ),
         const SizedBox(height: 20),
         Text(
-          'Specializing in state management (GetX · Bloc · Riverpod), Clean Architecture, and Firebase — from pixel-perfect UI to production REST/Firebase integration. Passionate about offline-first applications and on-device AI.',
-          textAlign: desktop ? TextAlign.start : TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
+          "I'm Amrut, a Flutter developer in Bengaluru. I build production apps with "
+          'Clean Architecture, Bloc and Riverpod, and Firebase, with a focus on '
+          'offline-first design and on-device AI using Google Gemma 3n and TensorFlow Lite.',
+          textAlign: textAlign,
+          style: textTheme.bodyLarge,
         ),
         const SizedBox(height: 28),
         Wrap(
-          alignment: desktop
-              ? WrapAlignment.start
-              : WrapAlignment.center,
+          alignment: wrapAlign,
           spacing: 10,
           runSpacing: 10,
           children: [
-            _ContactChip(
-              icon: Icons.location_on_rounded,
-              label: AppLinks.location,
-            ),
-            _ContactChip(
-              icon: Icons.mail_rounded,
-              label: AppLinks.email,
+            const TechChip(AppLinks.location),
+            TechChip(
+              AppLinks.email,
+              dotColor: AppColors.cyan,
               onTap: () => openUrl(AppLinks.mailto),
             ),
           ],
         ),
         const SizedBox(height: 32),
-        _QuoteCard(center: !desktop),
+        _LatestWorkCard(onTap: () => onNavigate(SectionId.projects)),
         const SizedBox(height: 26),
         Wrap(
-          alignment: desktop
-              ? WrapAlignment.start
-              : WrapAlignment.center,
+          alignment: wrapAlign,
           spacing: 10,
           runSpacing: 10,
           children: [
             GradientButton(
               label: 'Email Me',
               icon: Icons.mail_rounded,
+              isLink: true,
               onPressed: () => openUrl(AppLinks.mailto),
             ),
-            GradientButton(
+            const GradientButton(
               label: 'Resume',
               icon: Icons.download_rounded,
               outlined: true,
               compact: true,
-              onPressed: downloadResume,
+              onPressed: Browser.downloadResume,
             ),
             GradientButton(
               label: 'View Projects',
               icon: Icons.arrow_downward_rounded,
               outlined: true,
               compact: true,
-              onPressed: () => scrollToAnchor(anchors, 'projects', controller),
+              onPressed: () => onNavigate(SectionId.projects),
             ),
           ],
         ),
@@ -206,26 +192,17 @@ class _LeftPane extends StatelessWidget {
   }
 }
 
-class _AboutBadge extends StatelessWidget {
-  const _AboutBadge({required this.center});
-
-  final bool center;
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge();
 
   @override
   Widget build(BuildContext context) {
-    final chip = Container(
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.cyan.withValues(alpha: 0.12),
-            blurRadius: 18,
-            spreadRadius: -6,
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -234,41 +211,42 @@ class _AboutBadge extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: AppColors.cyan,
+              color: AppColors.statusGreen,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.cyan.withValues(alpha: 0.7),
+                  color: AppColors.statusGreen.withValues(alpha: 0.7),
                   blurRadius: 8,
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            'ABOUT ME',
-            style: AppText.mono(11.5, letterSpacing: 2.4),
+          Flexible(
+            child: Text(
+              'OPEN TO OPPORTUNITIES',
+              maxLines: 1,
+              overflow: TextOverflow.fade,
+              softWrap: false,
+              style: AppText.mono(11.5, letterSpacing: 1.8),
+            ),
           ),
         ],
       ),
     );
-    return center ? Center(child: chip) : chip;
   }
 }
 
 class _ProfilePhoto extends StatelessWidget {
-  const _ProfilePhoto({required this.center});
+  const _ProfilePhoto();
 
-  final bool center;
-
-  static const double _size = 200;
-  static const double _borderWidth = 3.5;
+  static const double size = 200;
 
   @override
   Widget build(BuildContext context) {
-    final photo = Container(
-      width: _size,
-      height: _size,
+    return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: AppColors.primaryGradient,
@@ -285,84 +263,54 @@ class _ProfilePhoto extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(_borderWidth),
-      child: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.surface,
-        ),
-        clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(3.5),
+      child: ClipOval(
         child: Image.asset(
           'assets/images/profile.jpeg',
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => _InitialsAvatar(),
+          semanticLabel: 'Photo of Amrut Khochikar',
+          errorBuilder: (_, _, _) => const _InitialsAvatar(),
         ),
       ),
     );
-    return center ? Center(child: photo) : photo;
   }
 }
 
 class _InitialsAvatar extends StatelessWidget {
+  const _InitialsAvatar();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: AppColors.primaryGradient,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        'AK',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: _ProfilePhoto._size * 0.3,
-          fontWeight: FontWeight.w700,
-          fontFamily: AppText.displayFont,
-          letterSpacing: 2,
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+      child: Center(
+        child: Text(
+          'AK',
+          style: AppText.display(
+            _ProfilePhoto.size * 0.3,
+            color: Colors.white,
+          ).copyWith(letterSpacing: 2),
         ),
       ),
     );
   }
 }
 
-class _ContactChip extends StatelessWidget {
-  const _ContactChip({required this.icon, required this.label, this.onTap});
+/// Highlights the most recent project and jumps to the projects section.
+class _LatestWorkCard extends StatelessWidget {
+  const _LatestWorkCard({required this.onTap});
 
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TechChip(
-      label,
-      onTap: onTap,
-      dotColor: onTap != null ? AppColors.cyan : null,
-    );
-  }
-}
-
-class _QuoteCard extends StatelessWidget {
-  const _QuoteCard({required this.center});
-
-  final bool center;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final constraints = center ? const BoxConstraints(maxWidth: 760) : null;
+    final textTheme = Theme.of(context).textTheme;
     return ConstrainedBox(
-      constraints:
-          constraints ?? const BoxConstraints(maxWidth: 780),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.72),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
+      constraints: const BoxConstraints(maxWidth: 760),
+      child: HoverCard(
+        radius: 16,
+        padding: const EdgeInsets.all(18),
+        onTap: onTap,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -374,27 +322,43 @@ class _QuoteCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9),
               ),
               alignment: Alignment.center,
-              child: const Text(
-                '❝',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                  height: 1,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                color: Colors.white,
+                size: 18,
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                'Flutter Developer and Mobile App Engineer building cross-platform mobile applications with Flutter, Dart, and Firebase — experienced in GetX, Bloc, and Riverpod state management, Clean Architecture, and REST API integration, with a passion for offline-first apps and on-device AI.',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'LATEST WORK',
+                    style: AppText.mono(
+                      11,
+                      color: AppColors.cyan,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'ExpenseFlow: an offline-first expense app whose on-device AI assistant '
+                    '(Gemma 3n + TensorFlow Lite) gives private budgeting and saving tips.',
+                    style: textTheme.bodyMedium!.copyWith(
                       color: AppColors.textPrimary,
-                      fontFamily: AppText.displayFont,
                       fontWeight: FontWeight.w500,
                       height: 1.55,
                     ),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.arrow_forward_rounded,
+              size: 18,
+              color: AppColors.textMuted,
             ),
           ],
         ),
@@ -407,132 +371,119 @@ class _TerminalCard extends StatelessWidget {
   const _TerminalCard();
 
   static const _lines = [
-    r'amrut@flutter:~$ whoami',
-    'amrut-khochikar · Flutter Developer',
-    r'amrut@flutter:~$ ls ./architecture',
-    'getx/  bloc/  riverpod/  clean/',
-    r'amrut@flutter:~$ cat firebase.txt',
-    'auth · realtime · cloud_firestore',
-    r'amrut@flutter:~$ status',
-    'Open to opportunities ✓',
+    (r'whoami', 'amrut-khochikar · Flutter Developer'),
+    (r'ls ./architecture', 'clean/  bloc/  riverpod/  provider/'),
+    (r'cat ai.txt', 'gemma-3n · tflite · on-device'),
+    (r'cat firebase.txt', 'auth · firestore · offline sync'),
+    (r'status', 'Open to opportunities ✓'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return HoverCard(
-      radius: 18,
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            decoration: const BoxDecoration(
-              color: AppColors.surfaceAlt,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-              border: Border(bottom: BorderSide(color: AppColors.border)),
-            ),
-            child: Row(
-              children: [
-                for (final color
-                    in const [Color(0xFFF87171), Color(0xFFFBBF24), Color(0xFF34D399)])
-                  Container(
-                    width: 11,
-                    height: 11,
-                    margin: const EdgeInsets.only(right: 7),
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
+    final mono = AppText.mono(12, height: 1.5);
+    return ExcludeSemantics(
+      child: HoverCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              decoration: const BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                border: Border(bottom: BorderSide(color: AppColors.border)),
+              ),
+              child: Row(
+                children: [
+                  for (final color in const [
+                    AppColors.statusRed,
+                    AppColors.statusAmber,
+                    AppColors.statusGreen,
+                  ])
+                    Container(
+                      width: 11,
+                      height: 11,
+                      margin: const EdgeInsets.only(right: 7),
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'shell — ~/portfolio',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppText.mono(11.5, color: AppColors.textMuted),
                     ),
                   ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'shell — ~/portfolio',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppText.mono(11.5, color: AppColors.textMuted),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (var i = 0; i < _lines.length; i++) ...[
-                  _TerminalLine(
-                    text: _lines[i],
-                    isPrompt: i.isEven,
-                  ),
-                  if (i < _lines.length - 1) const SizedBox(height: 6),
                 ],
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.cyan.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: AppColors.cyan.withValues(alpha: 0.25)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.verified_user_rounded,
-                          size: 15, color: AppColors.cyan),
-                      const SizedBox(width: 7),
-                      Expanded(
-                        child: Text(
-                          'GetX · Bloc · Riverpod · Firebase',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: AppColors.textSecondary,
-                            fontFamily: AppText.monoFont,
-                            letterSpacing: 0.5,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (command, output) in _lines) ...[
+                    Text.rich(
+                      TextSpan(
+                        style: mono,
+                        children: [
+                          TextSpan(
+                            text: '❯ ',
+                            style: mono.copyWith(
+                              color: AppColors.cyan,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          TextSpan(text: command),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(output, style: mono),
+                    const SizedBox(height: 6),
+                  ],
+                  const SizedBox(height: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.cyan.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.cyan.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.verified_user_rounded,
+                          size: 15,
+                          color: AppColors.cyan,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            'Bloc · Riverpod · Firebase · On-device AI',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppText.mono(11.5, letterSpacing: 0.5),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TerminalLine extends StatelessWidget {
-  const _TerminalLine({required this.text, required this.isPrompt});
-
-  final String text;
-  final bool isPrompt;
-
-  @override
-  Widget build(BuildContext context) {
-    final promptColor = isPrompt ? AppColors.cyan : AppColors.textSecondary;
-    return RichText(
-      text: TextSpan(
-        style: AppText.mono(12, color: AppColors.textSecondary, height: 1.5),
-        children: isPrompt
-            ? [
-                TextSpan(
-                  text: '❯ ',
-                  style: AppText.mono(12,
-                      color: AppColors.cyan, weight: FontWeight.w700),
-                ),
-                TextSpan(text: text.substring(text.indexOf(r'$') + 1)),
-              ]
-            : [
-                TextSpan(text: text, style: TextStyle(color: promptColor)),
-              ],
+          ],
+        ),
       ),
     );
   }
@@ -543,7 +494,7 @@ class _ScrollHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return ExcludeSemantics(
       child: Column(
         children: [
           Container(
@@ -552,7 +503,8 @@ class _ScrollHint extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: AppColors.textMuted.withValues(alpha: 0.6)),
+                color: AppColors.textMuted.withValues(alpha: 0.6),
+              ),
             ),
             padding: const EdgeInsets.only(top: 6),
             child: const Align(
@@ -563,7 +515,11 @@ class _ScrollHint extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'SCROLL',
-            style: AppText.mono(10, color: AppColors.textMuted, letterSpacing: 3),
+            style: AppText.mono(
+              10,
+              color: AppColors.textMuted,
+              letterSpacing: 3,
+            ),
           ),
         ],
       ),
@@ -583,7 +539,19 @@ class _ScrollDotState extends State<_ScrollDot>
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
-  )..repeat(reverse: true);
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (reduceMotionOf(context)) {
+      _controller
+        ..stop()
+        ..value = 0;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
 
   @override
   void dispose() {
@@ -593,21 +561,20 @@ class _ScrollDotState extends State<_ScrollDot>
 
   @override
   Widget build(BuildContext context) {
+    final dot = Container(
+      width: 4,
+      height: 8,
+      decoration: BoxDecoration(
+        color: AppColors.cyan,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
     return AnimatedBuilder(
       animation: _controller,
+      child: dot,
       builder: (context, child) => Transform.translate(
         offset: Offset(0, 4 + _controller.value * 14),
-        child: Opacity(
-          opacity: 1 - _controller.value,
-          child: Container(
-            width: 4,
-            height: 8,
-            decoration: BoxDecoration(
-              color: AppColors.cyan,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        ),
+        child: Opacity(opacity: 1 - _controller.value, child: child),
       ),
     );
   }

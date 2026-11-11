@@ -12,6 +12,13 @@ class Footer extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = contentPaddingOf(context);
     final wide = deviceOf(context) == DeviceType.desktop;
+    final backToTop = GradientButton(
+      label: 'Back to Top',
+      icon: Icons.arrow_upward_rounded,
+      compact: true,
+      outlined: true,
+      onPressed: scrollToTop,
+    );
 
     return Container(
       decoration: const BoxDecoration(
@@ -29,33 +36,15 @@ class Footer extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (wide)
-                Row(
-                  children: [
-                    _Logo(),
-                    const Spacer(),
-                    GradientButton(
-                      label: 'Back to Top',
-                      icon: Icons.arrow_upward_rounded,
-                      compact: true,
-                      outlined: true,
-                      onPressed: scrollToTop,
-                    ),
-                  ],
-                )
+                Row(children: [const _Logo(), const Spacer(), backToTop])
               else ...[
-                _Logo(),
+                const _Logo(),
                 const SizedBox(height: 18),
-                GradientButton(
-                  label: 'Back to Top',
-                  icon: Icons.arrow_upward_rounded,
-                  compact: true,
-                  outlined: true,
-                  onPressed: scrollToTop,
-                ),
+                backToTop,
               ],
               const SizedBox(height: 22),
               Text(
-                '© 2026 Amrut Khochikar. Built with Flutter.',
+                '© ${DateTime.now().year} Amrut Khochikar. Built with Flutter.',
                 style: AppText.mono(11.5, letterSpacing: 0.8),
                 textAlign: TextAlign.center,
               ),
@@ -68,6 +57,8 @@ class Footer extends StatelessWidget {
 }
 
 class _Logo extends StatelessWidget {
+  const _Logo();
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -79,19 +70,15 @@ class _Logo extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: AppColors.primaryGradient,
             borderRadius: BorderRadius.circular(9),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.cyan.withValues(alpha: 0.2),
-                blurRadius: 14,
-                spreadRadius: -6,
-              ),
-            ],
           ),
           alignment: Alignment.center,
           child: Text(
             'AK',
-            style: AppText.mono(11.5,
-                color: Colors.white, weight: FontWeight.w700),
+            style: AppText.mono(
+              11.5,
+              color: Colors.white,
+              weight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(width: 11),
@@ -99,11 +86,7 @@ class _Logo extends StatelessWidget {
           child: Text(
             'Amrut Khochikar — Flutter Developer',
             maxLines: 2,
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: AppColors.textPrimary,
-                  fontFamily: AppText.displayFont,
-                  fontWeight: FontWeight.w500,
-                ),
+            style: AppText.display(14.5, weight: FontWeight.w500),
           ),
         ),
       ],
