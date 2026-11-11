@@ -35,11 +35,29 @@ class Skill {
   final bool core;
 }
 
-class TopSkill {
-  const TopSkill({required this.name, required this.fraction});
+/// A headline strength, backed by evidence instead of a made-up percentage.
+class FocusArea {
+  const FocusArea({
+    required this.name,
+    required this.detail,
+    required this.icon,
+  });
 
   final String name;
-  final double fraction;
+  final String detail;
+  final IconData icon;
+}
+
+class ProjectLink {
+  const ProjectLink({
+    required this.label,
+    required this.url,
+    required this.icon,
+  });
+
+  final String label;
+  final String url;
+  final IconData icon;
 }
 
 class Project {
@@ -49,9 +67,8 @@ class Project {
     required this.icon,
     required this.tags,
     required this.bullets,
-    required this.categories,
-    this.githubUrl,
-    this.codeAvailable = false,
+    this.links = const [],
+    this.badge,
   });
 
   final String title;
@@ -59,9 +76,18 @@ class Project {
   final IconData icon;
   final List<String> tags;
   final List<String> bullets;
-  final List<String> categories;
-  final String? githubUrl;
-  final bool codeAvailable;
+  final List<ProjectLink> links;
+
+  /// Optional highlight shown next to the title (e.g. "Open source").
+  final String? badge;
+}
+
+/// An earlier title held at the same company (e.g. intern before promotion).
+class PreviousRole {
+  const PreviousRole({required this.role, required this.period});
+
+  final String role;
+  final String period;
 }
 
 class ExperienceItem {
@@ -72,6 +98,7 @@ class ExperienceItem {
     required this.mode,
     required this.bullets,
     required this.icon,
+    this.previousRoles = const [],
   });
 
   final String role;
@@ -80,13 +107,15 @@ class ExperienceItem {
   final String mode;
   final List<String> bullets;
   final IconData icon;
+  final List<PreviousRole> previousRoles;
 }
 
 class Achievement {
-  const Achievement({required this.title, required this.icon});
+  const Achievement({required this.title, required this.icon, this.url});
 
   final String title;
   final IconData icon;
+  final String? url;
 }
 
 class ContactLink {

@@ -1,35 +1,16 @@
 {
-    "name": "Amrut Khochikar | Flutter Developer",
-    "short_name": "Amrut Khochikar",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#070B14",
-    "theme_color": "#070B14",
-    "description": "Portfolio of Amrut Khochikar, a Flutter Developer and Mobile App Engineer.",
-    "orientation": "portrait-primary",
-    "prefer_related_applications": false,
-    "icons": [
-        {
-            "src": "icons/Icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-maskable-192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
-        },
-        {
-            "src": "icons/Icon-maskable-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
-        }
-    ]
+  "name": "Amrut Khochikar | Flutter Developer",
+  "short_name": "Amrut K.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F0A1E",
+  "theme_color": "#0F0A1E",
+  "description": "Portfolio of Amrut Khochikar, a Flutter developer building AI-powered mobile apps.",
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icons/Icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/Icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/Icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/Icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }

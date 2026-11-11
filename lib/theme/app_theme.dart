@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class AppColors {
-  AppColors._();
-
+abstract final class AppColors {
   static const Color background = Color(0xFF0F0A1E);
   static const Color surface = Color(0xFF160F26);
   static const Color surfaceAlt = Color(0xFF1E1633);
-  static const Color surfaceGlass = Color(0x0F1D1530);
 
   static const Color border = Color(0xFF302549);
-  static const Color borderBright = Color(0xFF4A3A70);
 
   static const Color textPrimary = Color(0xFFF2ECFC);
   static const Color textSecondary = Color(0xFFBEADD9);
@@ -32,8 +27,6 @@ class AppColors {
 
   static const LinearGradient blueCyanGradient = LinearGradient(
     colors: [blue, cyan],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
   );
 
   static const List<Color> dotPalette = [
@@ -46,19 +39,21 @@ class AppColors {
   ];
 }
 
-class AppText {
-  AppText._();
-
+/// Font families are bundled in `assets/fonts` and registered in pubspec.yaml.
+abstract final class AppText {
   static const String displayFont = 'SpaceGrotesk';
   static const String bodyFont = 'Inter';
   static const String monoFont = 'JetBrainsMono';
 
-  static TextStyle mono(double size,
-      {Color? color,
-      FontWeight weight = FontWeight.w500,
-      double? letterSpacing,
-      double? height}) {
-    return GoogleFonts.jetBrainsMono(
+  static TextStyle mono(
+    double size, {
+    Color? color,
+    FontWeight weight = FontWeight.w500,
+    double? letterSpacing,
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: monoFont,
       fontSize: size,
       color: color ?? AppColors.textSecondary,
       fontWeight: weight,
@@ -66,15 +61,48 @@ class AppText {
       height: height,
     );
   }
+
+  static TextStyle display(
+    double size, {
+    FontWeight weight = FontWeight.w700,
+    double? height,
+    double? letterSpacing,
+    Color color = AppColors.textPrimary,
+  }) {
+    return TextStyle(
+      fontFamily: displayFont,
+      fontSize: size,
+      height: height,
+      letterSpacing: letterSpacing,
+      fontWeight: weight,
+      color: color,
+    );
+  }
+
+  static TextStyle body(
+    double size, {
+    FontWeight weight = FontWeight.w400,
+    double? height,
+    Color color = AppColors.textSecondary,
+  }) {
+    return TextStyle(
+      fontFamily: bodyFont,
+      fontSize: size,
+      height: height,
+      fontWeight: weight,
+      color: color,
+    );
+  }
 }
 
-class AppTheme {
-  AppTheme._();
-
+abstract final class AppTheme {
   static const double navBarHeight = 76;
 
-  static ThemeData get dark {
-    final scheme = const ColorScheme.dark(
+  /// Built once; MaterialApp rebuilds no longer recreate ThemeData.
+  static final ThemeData dark = _buildDark();
+
+  static ThemeData _buildDark() {
+    const scheme = ColorScheme.dark(
       primary: AppColors.blue,
       secondary: AppColors.cyan,
       tertiary: AppColors.purple,
@@ -84,82 +112,40 @@ class AppTheme {
       outline: AppColors.border,
     );
 
-    final baseText = GoogleFonts.interTextTheme(
-      ThemeData(brightness: Brightness.dark, useMaterial3: true).textTheme,
-    );
-
-    final textTheme = baseText.copyWith(
-      displayLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 56,
-        height: 1.08,
-        letterSpacing: -1.6,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      displayMedium: GoogleFonts.spaceGrotesk(
-        fontSize: 42,
-        height: 1.12,
-        letterSpacing: -1.1,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      headlineLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 32,
-        height: 1.16,
-        letterSpacing: -0.7,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary,
-      ),
-      headlineMedium: GoogleFonts.spaceGrotesk(
-        fontSize: 25,
+    final textTheme = TextTheme(
+      displayLarge: AppText.display(56, height: 1.08, letterSpacing: -1.6),
+      displayMedium: AppText.display(42, height: 1.12, letterSpacing: -1.1),
+      headlineLarge: AppText.display(32, height: 1.16, letterSpacing: -0.7),
+      headlineMedium: AppText.display(
+        25,
         height: 1.2,
         letterSpacing: -0.4,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+        weight: FontWeight.w600,
       ),
-      headlineSmall: GoogleFonts.spaceGrotesk(
-        fontSize: 20,
-        height: 1.25,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      titleLarge: GoogleFonts.spaceGrotesk(
-        fontSize: 17,
-        height: 1.3,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-      titleMedium: GoogleFonts.inter(
-        fontSize: 15,
+      headlineSmall: AppText.display(20, height: 1.25, weight: FontWeight.w600),
+      titleLarge: AppText.display(17, height: 1.3, weight: FontWeight.w600),
+      titleMedium: AppText.body(
+        15,
         height: 1.35,
-        fontWeight: FontWeight.w600,
+        weight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      bodyLarge: GoogleFonts.inter(
-        fontSize: 16,
-        height: 1.6,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
-      ),
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 14.5,
-        height: 1.6,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
-      ),
-      bodySmall: GoogleFonts.inter(
-        fontSize: 13,
-        height: 1.55,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textMuted,
-      ),
-      labelLarge: GoogleFonts.inter(
-        fontSize: 14,
+      bodyLarge: AppText.body(16, height: 1.6),
+      bodyMedium: AppText.body(14.5, height: 1.6),
+      bodySmall: AppText.body(13, height: 1.55, color: AppColors.textMuted),
+      labelLarge: AppText.body(
+        14,
         height: 1.2,
-        fontWeight: FontWeight.w600,
+        weight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
     );
+
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: color, width: width),
+        );
 
     return ThemeData(
       useMaterial3: true,
@@ -169,7 +155,7 @@ class AppTheme {
       fontFamily: AppText.bodyFont,
       textTheme: textTheme,
       dividerColor: AppColors.border,
-      // Use the standard ink ripple instead of InkSparkle, which requires the
+      // Standard ink ripple instead of InkSparkle, which needs the
       // ink_sparkle.frag shader asset (missing in tests and some web builds).
       splashFactory: InkRipple.splashFactory,
       tooltipTheme: TooltipThemeData(
@@ -182,33 +168,24 @@ class AppTheme {
       ),
       textSelectionTheme: const TextSelectionThemeData(
         cursorColor: AppColors.cyan,
-        selectionColor: Color(0x33C084FC),
+        selectionColor: Color(0x55C084FC),
         selectionHandleColor: AppColors.cyan,
       ),
+      focusColor: AppColors.cyan.withValues(alpha: 0.18),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        hintStyle: GoogleFonts.inter(
-          fontSize: 14.5,
-          color: AppColors.textMuted,
+        hintStyle: AppText.body(14.5, color: AppColors.textMuted),
+        labelStyle: AppText.body(14.5),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
-        labelStyle: GoogleFonts.inter(
-          fontSize: 14.5,
-          color: AppColors.textSecondary,
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.cyan, width: 1.4),
-        ),
+        border: border(AppColors.border),
+        enabledBorder: border(AppColors.border),
+        focusedBorder: border(AppColors.cyan, 1.4),
+        errorBorder: border(AppColors.statusRed),
+        focusedErrorBorder: border(AppColors.statusRed, 1.4),
       ),
     );
   }
@@ -218,7 +195,7 @@ enum DeviceType { mobile, tablet, desktop }
 
 /// Responsive breakpoints:
 ///   mobile  : < 480
-///   tablet  : 481 – 1024
+///   tablet  : 480 – 1024
 ///   desktop : 1025+
 DeviceType deviceOf(BuildContext context) {
   final width = MediaQuery.sizeOf(context).width;
@@ -228,15 +205,17 @@ DeviceType deviceOf(BuildContext context) {
 }
 
 double contentPaddingOf(BuildContext context) => switch (deviceOf(context)) {
-      DeviceType.mobile => 20,
-      DeviceType.tablet => 36,
-      DeviceType.desktop => 64,
-    };
+  DeviceType.mobile => 20,
+  DeviceType.tablet => 36,
+  DeviceType.desktop => 64,
+};
 
 /// Collapses the navbar into a compact hamburger menu below this width.
-/// Set high enough that the inline links + resume button always fit without
-/// overflowing on desktop.
 bool useCompactNav(BuildContext context) =>
     MediaQuery.sizeOf(context).width < 1180;
+
+/// True when the OS / browser asks for reduced motion.
+bool reduceMotionOf(BuildContext context) =>
+    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
 const double maxContentWidth = 1200;

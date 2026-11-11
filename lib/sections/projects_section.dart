@@ -1,77 +1,59 @@
 import 'package:flutter/material.dart';
 
-import '../core/anchors.dart';
 import '../core/open.dart';
 import '../core/portfolio_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/hover_card.dart';
+import '../widgets/pressable.dart';
 import '../widgets/scroll_reveal.dart';
 import '../widgets/section_heading.dart';
+import '../widgets/section_shell.dart';
 import '../widgets/tech_chip.dart';
 
 class ProjectsSection extends StatelessWidget {
-  const ProjectsSection({
-    super.key,
-    required this.anchors,
-    required this.controller,
-  });
-
-  final Anchors anchors;
-  final ScrollController controller;
+  const ProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final padding = contentPaddingOf(context);
-
-    return Container(
-      key: anchors.projects,
-      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: maxContentWidth),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SectionShell(
+      heading: const SectionHeading(
+        order: '04',
+        label: 'Projects',
+        title: 'Featured Work',
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const spacing = 24.0;
+          final isWide = constraints.maxWidth > 700;
+          final half = isWide
+              ? (constraints.maxWidth - spacing) / 2
+              : constraints.maxWidth;
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
             children: [
-              ScrollReveal(
-                controller: controller,
-                child: const SectionHeading(
-                  order: '04',
-                  label: 'Projects',
-                  title: 'Featured Work',
+              for (var i = 0; i < projects.length; i++)
+                SizedBox(
+                  // The first (featured) project spans the full row.
+                  width: i == 0 ? constraints.maxWidth : half,
+                  child: ScrollReveal(
+                    duration: const Duration(milliseconds: 800),
+                    child: _ProjectCard(project: projects[i]),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final spacing = 24.0;
-                  final isWide = constraints.maxWidth > 700;
-                  final itemWidth = isWide
-                      ? (constraints.maxWidth - spacing) / 2
-                      : constraints.maxWidth;
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: [
-                      for (final project in projects)
-                        SizedBox(
-                          width: itemWidth,
-                          child: ScrollReveal(
-                            controller: controller,
-                            duration: const Duration(milliseconds: 800),
-                            child: _ProjectCard(project: project),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
+}
+
+/// Stable colour per tag (String.hashCode differs between VM, JS and Wasm).
+Color _tagColor(String tag) {
+  final sum = tag.codeUnits.fold<int>(0, (a, b) => a + b);
+  return AppColors.dotPalette[sum % AppColors.dotPalette.length];
 }
 
 class _ProjectCard extends StatefulWidget {
@@ -84,153 +66,115 @@ class _ProjectCard extends StatefulWidget {
 }
 
 class _ProjectCardState extends State<_ProjectCard> {
+  static const _collapsedBullets = 2;
   bool _expanded = false;
-
-  void _toggle() => setState(() => _expanded = !_expanded);
 
   @override
   Widget build(BuildContext context) {
     final p = widget.project;
-    final visibleBullets = _expanded ? p.bullets : p.bullets.take(2).toList();
-    final canExpand = p.bullets.length > 2;
+    final canExpand = p.bullets.length > _collapsedBullets;
+    final visible = _expanded
+        ? p.bullets
+        : p.bullets.take(_collapsedBullets).toList();
+    final textTheme = Theme.of(context).textTheme;
 
     return HoverCard(
       padding: const EdgeInsets.all(22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon + title header.
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(13),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.cyan.withValues(alpha: 0.25),
-                      blurRadius: 18,
-                      spreadRadius: -8,
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Icon(p.icon, color: Colors.white, size: 24),
-              ),
+              GradientIconBox(icon: p.icon, size: 48),
               const SizedBox(width: 15),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      p.title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall!
-                          .copyWith(fontFamily: AppText.displayFont),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(p.title, style: textTheme.headlineSmall),
+                        if (p.badge != null)
+                          TechChip(p.badge!, dotColor: AppColors.statusGreen),
+                      ],
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      p.subtitle,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    Text(p.subtitle, style: textTheme.bodySmall),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          // Tech tags.
           Wrap(
             spacing: 7,
             runSpacing: 7,
             children: [
-              for (final tag in p.tags)
-                TechChip(tag, dotColor: AppColors.dotPalette[tag.hashCode.abs() % AppColors.dotPalette.length]),
+              for (final tag in p.tags) TechChip(tag, dotColor: _tagColor(tag)),
             ],
           ),
           const SizedBox(height: 18),
-          // Bullets (collapsed = 2, expanded = all) with a See More / See
-          // Less toggle link.
           AnimatedSize(
             duration: const Duration(milliseconds: 320),
             curve: Curves.easeOutCubic,
             alignment: Alignment.topCenter,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (var i = 0; i < visibleBullets.length; i++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                        bottom: i == visibleBullets.length - 1 ? 2 : 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('▸ ',
-                            style: TextStyle(
-                                color: AppColors.cyan,
-                                fontSize: 13,
-                                fontFamily: AppText.monoFont,
-                                height: 1.5)),
-                        Expanded(
-                          child: Text(
-                            visibleBullets[i],
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(
-                                  color: AppColors.textSecondary,
-                                  height: 1.5,
-                                ),
-                          ),
+            child: BulletList(visible),
+          ),
+          if (canExpand) ...[
+            const SizedBox(height: 10),
+            Pressable(
+              onTap: () => setState(() => _expanded = !_expanded),
+              builder: (context, highlighted) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _expanded ? 'See Less' : 'See More',
+                    style:
+                        AppText.mono(
+                          12,
+                          color: AppColors.cyan,
+                          weight: FontWeight.w600,
+                        ).copyWith(
+                          decoration: highlighted
+                              ? TextDecoration.underline
+                              : null,
+                          decorationColor: AppColors.cyan,
                         ),
-                      ],
-                    ),
                   ),
-                if (canExpand)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: InkWell(
-                      onTap: _toggle,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _expanded ? 'See Less' : 'See More',
-                            style: AppText.mono(12,
-                                color: AppColors.cyan, weight: FontWeight.w600),
-                          ),
-                          const SizedBox(width: 5),
-                          Icon(
-                            _expanded
-                                ? Icons.expand_less_rounded
-                                : Icons.expand_more_rounded,
-                            size: 18,
-                            color: AppColors.cyan,
-                          ),
-                        ],
-                      ),
-                    ),
+                  const SizedBox(width: 5),
+                  Icon(
+                    _expanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 18,
+                    color: AppColors.cyan,
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (p.links.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final link in p.links)
+                  GradientButton(
+                    label: link.label,
+                    icon: link.icon,
+                    compact: true,
+                    isLink: true,
+                    onPressed: () => openUrl(link.url),
                   ),
               ],
             ),
-          ),
-        if (p.codeAvailable && p.githubUrl != null) ...[
-          const SizedBox(height: 18),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: GradientButton(
-              label: 'View Code',
-              icon: Icons.launch_rounded,
-              compact: true,
-              onPressed: () => openUrl(p.githubUrl!),
-            ),
-          ),
+          ],
         ],
-      ],
       ),
     );
   }

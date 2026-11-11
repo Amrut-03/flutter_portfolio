@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../core/anchors.dart';
 import '../core/open.dart';
 import '../core/portfolio_data.dart';
 import '../theme/app_theme.dart';
@@ -12,16 +11,19 @@ import '../widgets/gradient_button.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/scroll_reveal.dart';
 import '../widgets/section_heading.dart';
+import '../widgets/section_shell.dart';
+
+/// Limits mirrored in firestore.rules — keep both in sync.
+abstract final class ContactLimits {
+  static const name = 100;
+  static const email = 254;
+  static const message = 2000;
+}
+
+final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
 
 class ContactSection extends StatefulWidget {
-  const ContactSection({
-    super.key,
-    required this.anchors,
-    required this.controller,
-  });
-
-  final Anchors anchors;
-  final ScrollController controller;
+  const ContactSection({super.key});
 
   @override
   State<ContactSection> createState() => _ContactSectionState();
@@ -32,6 +34,7 @@ class _ContactSectionState extends State<ContactSection> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
+  bool _sending = false;
 
   @override
   void dispose() {
@@ -41,22 +44,29 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
-  void _handleSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      _submit();
-    }
+  void _showSnack(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  void _clearForm() {
+    _nameController.clear();
+    _emailController.clear();
+    _messageController.clear();
+    _formKey.currentState?.reset();
   }
 
   Future<void> _submit() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sending your message…')),
-    );
+    if (_sending || !(_formKey.currentState?.validate() ?? false)) return;
+
     if (!kIsWeb) {
-      // Desktop / mobile: Firebase isn't configured here, so compose the
-      // message in the user's email client instead.
-      _sendByEmail();
+      // Firebase is only configured for web; compose an email instead.
+      await _sendByEmail();
       return;
     }
+
+    setState(() => _sending = true);
     try {
       await FirebaseFirestore.instance
           .collection('messages')
@@ -68,125 +78,94 @@ class _ContactSectionState extends State<ContactSection> {
           })
           .timeout(const Duration(seconds: 20));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Thanks for reaching out — I\'ll get back to you soon!'),
-        ),
-      );
-      _nameController.clear();
-      _emailController.clear();
-      _messageController.clear();
-    } on TimeoutException {
-      // Request stalled on the network — fall back to email so the message
-      // isn't lost.
-      _sendByEmail(showInfo: true);
+      _clearForm();
+      _showSnack("Thanks for reaching out — I'll get back to you soon!");
     } catch (error) {
-      // Database write failed, fall back to email so the visitor can still
-      // get in touch.
+      // Network stall or rejected write: fall back to the visitor's email
+      // client so the message isn't lost.
       debugPrint('Firestore submit error: $error');
-      _sendByEmail(showInfo: true);
+      await _sendByEmail(fallback: true);
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
   }
 
-  void _sendByEmail({bool showInfo = false}) {
-    final subject = Uri.encodeComponent(
-      'Portfolio message from ${_nameController.text.trim()}',
+  /// Opens a pre-filled email. The form is kept, since we can't know whether
+  /// the visitor actually sends it.
+  Future<void> _sendByEmail({bool fallback = false}) async {
+    final name = _nameController.text.trim();
+    final uri = Uri(
+      scheme: 'mailto',
+      path: AppLinks.email,
+      query: _encodeQuery({
+        'subject': 'Portfolio message from $name',
+        'body':
+            'Name: $name\nEmail: ${_emailController.text.trim()}\n\n'
+            '${_messageController.text.trim()}',
+      }),
     );
-    final body = Uri.encodeComponent(
-      'Name: ${_nameController.text.trim()}\n'
-      'Email: ${_emailController.text.trim()}\n\n'
-      '${_messageController.text.trim()}',
-    );
-    openUrl('${AppLinks.mailto}?subject=$subject&body=$body');
+    await openUrl(uri.toString());
     if (!mounted) return;
-    if (showInfo) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Couldn\'t reach the server, so I\'ve opened your email — '
-            'hit send there and I\'ll get it!',
-          ),
-        ),
-      );
-    }
-    _nameController.clear();
-    _emailController.clear();
-    _messageController.clear();
+    _showSnack(
+      fallback
+          ? "Couldn't reach the server, so I've opened your email app — hit send there and I'll get it!"
+          : "I've opened your email app with the message filled in — just hit send.",
+    );
   }
+
+  // Uri(queryParameters:) encodes spaces as '+', which mail clients show
+  // literally; encode with %20 instead.
+  static String _encodeQuery(Map<String, String> params) => params.entries
+      .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+      .join('&');
 
   @override
   Widget build(BuildContext context) {
-    final padding = contentPaddingOf(context);
     final wide = deviceOf(context) == DeviceType.desktop;
+    final form = _ContactForm(
+      formKey: _formKey,
+      nameController: _nameController,
+      emailController: _emailController,
+      messageController: _messageController,
+      sending: _sending,
+      onSubmit: _submit,
+    );
 
-    return Container(
-      key: widget.anchors.contact,
-      padding: EdgeInsets.fromLTRB(padding, 56, padding, 56),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: maxContentWidth),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ScrollReveal(
-                controller: widget.controller,
-                child: const SectionHeading(
-                  order: '06',
-                  label: 'Contact',
-                  title: 'Get in Touch',
-                  subtitle:
-                      'Have a project in mind or want to discuss opportunities? I\'d love to hear from you.',
-                ),
-              ),
-              const SizedBox(height: 36),
-              if (wide)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 4, child: _ContactLinks(controller: widget.controller)),
-                    const SizedBox(width: 40),
-                    Expanded(
-                      flex: 5,
-                      child: _ContactForm(
-                        formKey: _formKey,
-                        nameController: _nameController,
-                        emailController: _emailController,
-                        messageController: _messageController,
-                        onSubmit: _handleSubmit,
-                        controller: widget.controller,
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
-                _ContactLinks(controller: widget.controller),
-                const SizedBox(height: 40),
-                _ContactForm(
-                  formKey: _formKey,
-                  nameController: _nameController,
-                  emailController: _emailController,
-                  messageController: _messageController,
-                  onSubmit: _handleSubmit,
-                  controller: widget.controller,
-                ),
-              ],
-            ],
-          ),
-        ),
+    return SectionShell(
+      heading: const SectionHeading(
+        order: '06',
+        label: 'Contact',
+        title: 'Get in Touch',
+        subtitle:
+            "Have a project in mind or want to discuss opportunities? I'd love to hear from you.",
       ),
+      child: wide
+          ? Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Expanded(flex: 4, child: _ContactLinks()),
+                const SizedBox(width: 40),
+                Expanded(flex: 5, child: form),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const _ContactLinks(),
+                const SizedBox(height: 40),
+                form,
+              ],
+            ),
     );
   }
 }
 
 class _ContactLinks extends StatelessWidget {
-  const _ContactLinks({required this.controller});
-
-  final ScrollController controller;
+  const _ContactLinks();
 
   @override
   Widget build(BuildContext context) {
     return ScrollReveal(
-      controller: controller,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -197,9 +176,10 @@ class _ContactLinks extends StatelessWidget {
           const SizedBox(height: 20),
           for (var i = 0; i < contactLinks.length; i++)
             Padding(
-              padding: EdgeInsets.only(bottom: i == contactLinks.length - 1 ? 0 : 12),
+              padding: EdgeInsets.only(
+                bottom: i == contactLinks.length - 1 ? 0 : 12,
+              ),
               child: ScrollReveal(
-                controller: controller,
                 delay: Duration(milliseconds: 50 * i),
                 offsetY: 12,
                 child: _ContactLinkCard(link: contactLinks[i]),
@@ -218,11 +198,12 @@ class _ContactLinkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasUrl = link.url != null;
+    final url = link.url;
     return HoverCard(
       radius: 14,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      onTap: hasUrl ? () => openUrl(link.url!) : null,
+      onTap: url == null ? null : () => openUrl(url),
+      isLink: true,
       child: Row(
         children: [
           Container(
@@ -242,10 +223,7 @@ class _ContactLinkCard extends StatelessWidget {
               children: [
                 Text(
                   link.label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(fontSize: 13, fontFamily: AppText.displayFont),
+                  style: AppText.display(13, weight: FontWeight.w600),
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -256,7 +234,7 @@ class _ContactLinkCard extends StatelessWidget {
               ],
             ),
           ),
-          if (hasUrl)
+          if (url != null)
             const Icon(
               Icons.open_in_new_rounded,
               size: 15,
@@ -274,21 +252,20 @@ class _ContactForm extends StatelessWidget {
     required this.nameController,
     required this.emailController,
     required this.messageController,
+    required this.sending,
     required this.onSubmit,
-    required this.controller,
   });
 
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController messageController;
+  final bool sending;
   final VoidCallback onSubmit;
-  final ScrollController controller;
 
   @override
   Widget build(BuildContext context) {
     return ScrollReveal(
-      controller: controller,
       offsetY: 22,
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -296,65 +273,70 @@ class _ContactForm extends StatelessWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.cyan.withValues(alpha: 0.04),
-              blurRadius: 36,
-              spreadRadius: -10,
-            ),
-          ],
         ),
         child: Form(
           key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Send a Message',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-              _FormTextField(
-                controller: nameController,
-                label: 'Your Name',
-                hint: 'e.g. Amrut',
-                icon: Icons.person_outline_rounded,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Please enter your name' : null,
-              ),
-              const SizedBox(height: 18),
-              _FormTextField(
-                controller: emailController,
-                label: 'Email',
-                hint: 'you@example.com',
-                icon: Icons.mail_outline_rounded,
-                keyboardType: TextInputType.emailAddress,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Please enter an email';
-                  if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 18),
-              _FormTextField(
-                controller: messageController,
-                label: 'Message',
-                hint: 'How can I help?',
-                icon: Icons.chat_bubble_outline_rounded,
-                maxLines: 4,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Please enter a message' : null,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: GradientButton(
-                  label: 'Send Message',
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Send a Message',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 24),
+                _FormTextField(
+                  controller: nameController,
+                  label: 'Your Name',
+                  hint: 'e.g. Priya Sharma',
+                  icon: Icons.person_outline_rounded,
+                  maxLength: ContactLimits.name,
+                  autofillHints: const [AutofillHints.name],
+                  textInputAction: TextInputAction.next,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Please enter your name'
+                      : null,
+                ),
+                const SizedBox(height: 18),
+                _FormTextField(
+                  controller: emailController,
+                  label: 'Email',
+                  hint: 'you@example.com',
+                  icon: Icons.mail_outline_rounded,
+                  keyboardType: TextInputType.emailAddress,
+                  maxLength: ContactLimits.email,
+                  autofillHints: const [AutofillHints.email],
+                  textInputAction: TextInputAction.next,
+                  validator: (v) {
+                    final value = v?.trim() ?? '';
+                    if (value.isEmpty) return 'Please enter an email';
+                    if (!_emailPattern.hasMatch(value)) {
+                      return 'Enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+                _FormTextField(
+                  controller: messageController,
+                  label: 'Message',
+                  hint: 'How can I help?',
+                  icon: Icons.chat_bubble_outline_rounded,
+                  maxLines: 5,
+                  maxLength: ContactLimits.message,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Please enter a message'
+                      : null,
+                ),
+                const SizedBox(height: 24),
+                GradientButton(
+                  label: sending ? 'Sending…' : 'Send Message',
                   icon: Icons.send_rounded,
+                  loading: sending,
                   onPressed: onSubmit,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -368,18 +350,24 @@ class _FormTextField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.icon,
+    required this.maxLength,
     this.keyboardType,
     this.maxLines = 1,
     this.validator,
+    this.autofillHints,
+    this.textInputAction,
   });
 
   final TextEditingController controller;
   final String label;
   final String hint;
   final IconData icon;
+  final int maxLength;
   final TextInputType? keyboardType;
   final int maxLines;
   final String? Function(String?)? validator;
+  final Iterable<String>? autofillHints;
+  final TextInputAction? textInputAction;
 
   @override
   Widget build(BuildContext context) {
@@ -387,11 +375,15 @@ class _FormTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      maxLength: maxLength,
       validator: validator,
+      autofillHints: autofillHints,
+      textInputAction: textInputAction,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        counterText: '',
         prefixIcon: Icon(icon, size: 17, color: AppColors.textMuted),
       ),
     );
