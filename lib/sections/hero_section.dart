@@ -137,7 +137,7 @@ class _LeftPane extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          "I'm Amrut, a Flutter developer in Bengaluru. I build production apps with "
+          "I'm Amrut, a Flutter developer in Kolhapur. I build production apps with "
           'Clean Architecture, Bloc and Riverpod, and Firebase, with a focus on '
           'offline-first design and on-device AI using Google Gemma 3n and TensorFlow Lite.',
           textAlign: textAlign,

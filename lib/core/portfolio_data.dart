@@ -11,7 +11,7 @@ abstract final class AppLinks {
 
   static const String email = 'amrutkhochikar@gmail.com';
   static const String mailto = 'mailto:$email';
-  static const String location = 'Bengaluru, Karnataka, India';
+  static const String location = 'Kolhapur, Maharashtra, India';
   static const String github = 'https://github.com/Amrut-03';
   static const String linkedin = 'https://www.linkedin.com/in/amrut-khochikar/';
   static const String leetcode = 'https://leetcode.com/u/Amrut_03/';
