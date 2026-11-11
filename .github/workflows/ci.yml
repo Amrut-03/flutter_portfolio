@@ -13,6 +13,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Secrets can't be read in step `if:` conditions, so expose a flag.
+      # Deploys are skipped (not failed) until FIREBASE_SERVICE_ACCOUNT is set.
+      HAS_FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +38,7 @@ jobs:
 
       # PRs get a temporary preview URL; pushes to main go live.
       - name: Deploy preview
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.HAS_FIREBASE_SA == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
@@ -42,7 +46,7 @@ jobs:
           projectId: amrut-portfolio-project
 
       - name: Deploy live
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: env.HAS_FIREBASE_SA == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
