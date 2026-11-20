@@ -84,10 +84,9 @@ void main() {
     expect(find.text('CORE FOCUS'), findsOneWidget);
     expect(find.text('On-device AI in Flutter'), findsOneWidget);
     expect(find.text('flutter_body_part_selector'), findsOneWidget);
-    expect(
-      find.textContaining('Promoted from Software Engineer Intern'),
-      findsOneWidget,
-    );
+    expect(find.text('Software Engineer (Flutter)'), findsOneWidget);
+    expect(find.text('Apr 2025 – Apr 2026'), findsOneWidget);
+    expect(find.textContaining('Promoted from'), findsNothing);
   });
 
   testWidgets('contact form validates before sending', (tester) async {
