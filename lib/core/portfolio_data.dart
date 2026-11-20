@@ -225,22 +225,16 @@ const List<Achievement> achievements = [
 
 const List<ExperienceItem> experienceItems = [
   ExperienceItem(
-    role: 'Software Engineer',
+    role: 'Software Engineer (Flutter)',
     company: 'Mitt Arv Technologies Pvt. Ltd.',
-    period: 'Oct 2025 – Apr 2026',
+    period: 'Apr 2025 – Apr 2026',
     mode: 'Hybrid / Remote',
     icon: Icons.work_rounded,
-    previousRoles: [
-      PreviousRole(
-        role: 'Software Engineer Intern',
-        period: 'Apr 2025 – Sep 2025',
-      ),
-    ],
     bullets: [
-      'Engineered cross-platform mobile applications using Flutter, improving application UI/UX and performance by approximately 30%',
-      'Resolved complex GetX state-management issues and introduced modular, maintainable application architecture',
-      'Optimized RESTful API consumption and data handling for reliable backend communication',
-      'Delivered production-ready features following clean coding practices, helping reduce post-release defects',
+      'As the sole Flutter developer, owned end-to-end development of cross-platform apps for Android and iOS, building 30+ responsive screens from Figma and improving performance by 30% via Flutter DevTools profiling',
+      'Refactored GetX state management into a modular architecture, resolving recurring state bugs, and integrated 20+ REST endpoints with Http, structured error handling and secure token storage',
+      'Managed end-to-end Google Play Store releases (signing, versioning, listing, rollout) for an app with 1K+ downloads',
+      'Wrote unit and widget tests for core modules, working with backend, design and product teams in an Agile workflow',
     ],
   ),
   ExperienceItem(
@@ -250,21 +244,20 @@ const List<ExperienceItem> experienceItems = [
     mode: 'Remote',
     icon: Icons.rocket_launch_rounded,
     bullets: [
-      'Built a Flutter-based car wash mobile application from scratch',
-      'Implemented Riverpod state management and integrated REST APIs for backend communication',
-      'Conducted debugging, code reviews, and functional testing, improving application stability and reducing runtime issues',
+      'Built a Flutter car wash app from scratch with GetX and REST APIs',
+      'Handled debugging, code reviews and testing',
     ],
   ),
   ExperienceItem(
-    role: 'Mobile App Developer Intern',
+    role: 'Mobile Application Developer Intern',
     company: 'Digital Development and Leadership Group (DDLG)',
-    period: 'Mar 2024 – Apr 2024',
+    period: 'Feb 2024 – Mar 2024',
     mode: 'Remote',
     icon: Icons.near_me_rounded,
     bullets: [
-      'Contributed to a Flutter-based ride-services application with real-time ride workflows and user operations',
-      'Integrated Firebase services and enhanced the Google Maps UI by approximately 50%',
-      'Contributed to Stripe payment gateway integration',
+      'Integrated Firebase Auth and Firestore in a ride services app',
+      'Improved Google Maps live tracking',
+      'Contributed to Stripe payments',
     ],
   ),
 ];
